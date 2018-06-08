@@ -15,9 +15,12 @@ $ node bamazonCustomer.js
 
 
 
+
+
 For the other application one can follow similar suit as bamazonManager.js and bamazonSupervisor.js respectively.
 
 2.    Customer request to place an order by entering item id and quantity to be purchased.
+    
 
 
 Current database status in terms of item with id=7 and quantity in stock has been reduced by 2.By ordering the stock quantity reduced from 25 to 23 and product sales is tally according by estimating the price by the quantity of products purchased by the customer.
