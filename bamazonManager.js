@@ -61,13 +61,12 @@ function promptManagerAction() {
 				} else {
 					// This case should be unreachable
 					console.log('ERROR: Unsupported operation!');
-					exit(1);
+					exit(0);
 				}
 			}
 		}
 	]).then(function(input) {
-		// console.log('User has selected: ' + JSON.stringify(input));
-
+		
 		// Trigger the appropriate action based on the user input
 		if (input.option ==='sale') {
 			display_products();
@@ -80,7 +79,7 @@ function promptManagerAction() {
 		} else {
 			// This case should be unreachable
 			console.log('ERROR: Unsupported operation!');
-			exit(1);
+			exit(0);
 		}
 	})
 }
@@ -147,20 +146,25 @@ function display_LowInventory() {
 		
 		if (err) throw err;
 
-		if(!(data.stock_quantity <5)) {
+		if(! data[0].stock_quantity <5) {
+			connection.end();
 			
 			return console.log("Sorry,All stocks are up to capacity!")
+		}
+		else{
+
+			for (var i = 0; i < data.length; i++) {
+            
+				table.push([data[i].item_id,data[i].product_name,data[i].department_name,data[i].price,data[i].stock_quantity,data[i].product_sales]);
+	
+			}
 		}
 		
         console.log('.......................................\n');
 		console.log('*** Low Inventory Items (below 100): *** ');
 		console.log('.......................................\n');
 
-		for (var i = 0; i < data.length; i++) {
-            
-            table.push([data[i].item_id,data[i].product_name,data[i].department_name,data[i].price,data[i].stock_quantity,data[i].product_sales]);
-
-        }
+		
         
         console.log(table.toString());
 
@@ -247,7 +251,7 @@ function create_NewProduct() {
 		{
 			type: 'input',
 			name: 'department_name',
-			message: 'Which department does the new product belong to?',
+			message: 'Department name the new product belong to?',
 		},
 		{
 			type: 'input',

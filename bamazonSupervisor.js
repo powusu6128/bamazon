@@ -31,7 +31,8 @@ var table = new Table({
         'right-mid': '╢',
         'middle': '│'
     },
-    head: ['department_id','department_name','product_sales','cost_overhead','total_sales']
+
+    head: ['department_id', 'department_name', 'product_sales', 'cost_overhead', 'total_sales']
 
 });
 
@@ -42,41 +43,58 @@ function bamazonSupervisor() {
 
     inquirer.prompt([{
             message: "What is the action to be performed ?",
+
             type: "checkbox",
+
             name: "topics",
-            choices: ["Add a New Department", "View Revenue by Department"]
+
+            choices: ["Add A New Department", "View Revenue Made By Each Department", "cancel"]
 
         }
 
     ]).then(function (input) {
 
-        if (input.topics === "Add a New Department") {
-            console.log("New Department added");
-            add_new_dept();
-        } else {
-            console.log("View Revenue report");
-            view_revenue_report();
+        if (input.topics[0] === "Add A New Department") {
 
+            console.log("--------New Department added----------");
+
+            addNewDepartment();
+
+        } else if (input.topics[0] === "View Revenue Made By Each Department") {
+
+            console.log("-------Departmental Revenues--------------");
+
+            showSalesMade();
+
+        } else {
+
+            console.log("---------cancelled---------");
+
+            return connection.end();
         }
+
 
     })
 }
 
-
-function add_new_dept() {
+function addNewDepartment() {
 
     inquirer.prompt([{
 
-            message: "What is the New Department Name?",
+            message: "Enter New Department Name?",
+
             type: "input",
+
             name: "department_name"
 
         },
         {
 
-            message: "What is the New Department overhead?",
+            message: "Enter New Department overhead?",
+
             type: "input",
-            name: "cost_overhead"
+
+            name: "overhead_costs"
 
         },
 
@@ -87,10 +105,15 @@ function add_new_dept() {
         queryStr = 'SELECT department_name FROM departments';
 
         connection.query(queryStr, function (err, data) {
+
+            // console.log(data);
+
             if (err) throw err;
-            console.log(data);
+
             var depts = '';
+
             var a = '';
+
             for (i = 0; i < data.length; i++) {
 
                 dept = data[i].department_name;
@@ -98,7 +121,7 @@ function add_new_dept() {
             }
             a = dept.indexOf(input.department_name);
 
-            if (a === -1){
+            if (a === -1) {
 
                 // Create the insertion query string
                 var queryStr = 'INSERT INTO bamazon2.departments SET ?';
@@ -110,13 +133,14 @@ function add_new_dept() {
                     console.log('New department has been added under dept ID ' + results.insertId + '.');
                     console.log("\n---------------------------------------------------------------------\n");
 
-                    connection.end();
+                    endOperation();
 
                 });
 
             } else {
                 console.log("Department already exists, No duplication allowed");
-                connection.end()
+
+                endOperation();
 
             }
 
@@ -126,19 +150,18 @@ function add_new_dept() {
 
 }
 
-function view_revenue_report() {
 
-    // connect to database. 
-    // 
-    // check if the dept name exists,
-    // if no , then add , else display error msg.
-    // close connection. 
+function showSalesMade(){
 
-    var queryStr = 'SELECT departments.department_id,departments.department_name, departments.overhead_costs,products.product_sales ,';
-    queryStr += ' sum(products.product_sales - departments.overhead_costs) as total_sales';
-    queryStr += ' FROM products inner join departments where products.department_name = departments.department_name group by department_name;';
+    var queryStr = 'select departments.department_id,departments.department_name,departments.overhead_costs,products.product_sales,SUM(products.product_sales - departments.overhead_costs) as total_sales ';
+    queryStr += 'from departments ';
+    queryStr += 'inner join products on ';
+    queryStr += 'departments.department_name = products.department_name ';
+    queryStr += 'group by departments.department_id,departments.department_name,departments.overhead_costs,products.product_sales ';
+    queryStr += 'ORDER BY total_sales DESC limit 10';
 
     connection.query(queryStr, function (err, data) {
+
         if (err) throw err;
 
         if (data != '') {
@@ -147,23 +170,28 @@ function view_revenue_report() {
             console.log('  *** Revenue Report By Department *** ');
             console.log('---------------------------------------------\n');
 
-            
             for (var i = 0; i < data.length; i++) {
-            
-                table.push([data[i].department_id,data[i].department_name,data[i].product_sales, data[i].cost_overhead, data[i].total_sales]);
+
+                table.push([data[i].department_id, data[i].department_name, data[i].product_sales, data[i].overhead_costs, data[i].total_sales]);
 
             }
+
             console.log(table.toString());
 
 
         } else {
-            console.log("Please contact sys adm for system issue");
+
+            console.log("Sorry, you can't perform this operation!!!");
+            endOperation();
 
         }
 
-        connection.end();
+        endOperation();
 
     });
 
+}
 
+function endOperation() {
+    connection.end()
 }

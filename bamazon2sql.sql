@@ -52,7 +52,6 @@ CREATE TABLE departments (
   overhead_costs decimal (10,2) NOT NULL default '0.00'
 
 );
-drop table departments;
 
 select * from departments;
 
@@ -67,6 +66,10 @@ values('dsw', 2000),
             
 alter table products add column product_sales decimal  default 00.00;
 
-select departments.department_id, departments.department_name,departments.overhead_costs,products.product_sales as total_sales from departments inner join products on 
-departments.department_name= products.department_name group by department_name;
+select departments.department_id,departments.department_name,departments.overhead_costs,products.product_sales,SUM(products.product_sales - departments.overhead_costs) as total_sales
+from departments
+inner join products on
+departments.department_name = products.department_name
+group by departments.department_name,departments.overhead_costs,products.product_sales ,departments.department_id
+ORDER BY total_sales DESC limit 10;
 
